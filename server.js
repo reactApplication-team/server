@@ -1,4 +1,3 @@
-// server.js
 import express from "express";
 import dotenv from "dotenv";
 import Stripe from "stripe";
@@ -12,25 +11,21 @@ if (!process.env.STRIPE_SECRET_KEY) {
 
 const app = express();
 
-// 🔧 Debug build stamp to verify the new code is running
 const BUILD_STAMP = `build-${new Date().toISOString()}`;
 console.log("Starting server with", { BUILD_STAMP });
 
-// ✅ Simple, explicit CORS middleware (echoes Origin; handles preflight)
 app.use((req, res, next) => {
   const origin = req.headers.origin || "*";
   res.header("Access-Control-Allow-Origin", origin);
-  res.header("Vary", "Origin"); // so proxies don't cache incorrectly
+  res.header("Vary", "Origin");
   res.header(
     "Access-Control-Allow-Methods",
     "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"
   );
   res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
-  // If you are NOT using cookies/sessions, do NOT set Allow-Credentials
-  // If you need credentials, set it to "true" AND do not use "*" above.
 
   if (req.method === "OPTIONS") {
-    return res.sendStatus(204); // Preflight success
+    return res.sendStatus(204);
   }
   next();
 });
@@ -41,7 +36,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2024-06-20",
 });
 
-// Health endpoint (shows stamp to prove deploy)
 app.get("/", (_req, res) => {
   res.json({ ok: true, service: "checkout-server", stamp: BUILD_STAMP });
 });
@@ -69,7 +63,7 @@ app.post("/create-checkout-session", async (req, res) => {
         price_data: {
           currency: process.env.CURRENCY || "usd",
           product_data: { name },
-          unit_amount: Math.round(priceNum * 100), // cents
+          unit_amount: Math.round(priceNum * 100),
         },
         quantity: qty,
       };
@@ -93,7 +87,7 @@ app.post("/create-checkout-session", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000; // Render sets PORT
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT} with ${BUILD_STAMP}`);
 });
